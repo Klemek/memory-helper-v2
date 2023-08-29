@@ -8,17 +8,19 @@ const utils = {
         return LZString.compressToEncodedURIComponent(list.map(v => v.join('|')).join('|'));
     },
     deserialize: function (rawData) {
+        const data = LZString.decompressFromBase64(rawData) ?? LZString.decompressFromEncodedURIComponent(rawData);
         try {
-            return JSON.parse(LZString.decompressFromBase64(rawData));
+            return JSON.parse(data);
         } catch {
             let output = [];
-            LZString.decompressFromEncodedURIComponent(rawData).split('|').forEach((v, i) => {
+            data.split('|').forEach((v, i) => {
                 if (i % 2 === 0) {
                     output.push([v, '']);
                 } else {
                     output[output.length - 1][1] = v;
                 }
             });
+            console.log(output);
             return output;
         }
     },
