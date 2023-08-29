@@ -13,14 +13,14 @@
     <main id="app" style="display:none">
         <h1>Memory Helper</h1>
         <div v-if="available.length > 0">
-            <div id='status'>Status : {{ done.length }}/{{ available.length }}</div>
-            <div v-if="current.length === 0">
+            <div id='status'>Status : {{ doneDisplay }}/{{ availableDisplay }}</div>
+            <div v-if="current[mode].length === 0">
                 <div class="main"><span id="question">🎉</span></div>
                 <div class="button-container">
                     <div type="button" class="button long" v-on:click="reset">Reset</div>
                 </div>
             </div>
-            <div v-if="current.length > 0">
+            <div v-if="current[mode].length > 0">
                 <div class="main"><span id="question">{{question}}</span></div>
                 <div class="main"><span id="answer">{{showAnswer ? answer : '???'}}</span></div>
                 <div class="button-container">

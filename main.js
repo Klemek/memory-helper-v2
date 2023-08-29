@@ -15,12 +15,11 @@ const utils = {
             let output = [];
             data.split('|').forEach((v, i) => {
                 if (i % 2 === 0) {
-                    output.push([v, '']);
+                    output.push([ v, '' ]);
                 } else {
                     output[output.length - 1][1] = v;
                 }
             });
-            console.log(output);
             return output;
         }
     },
@@ -68,19 +67,26 @@ let app = {
             answer: '',
             showAnswer: false,
             available: [],
-            current: [],
-            failed: [],
-            done: [],
+            current: { a2q: [], q2a: [] },
+            failed: { a2q: [], q2a: [] },
+            done: { a2q: [], q2a: [] },
             newRow: [ '', '' ],
             showConfig: true,
             q2a: true,
             a2q: false,
             size: 0,
+            mode: 'q2a',
         };
     },
     computed: {
         currentYear() {
             return new Date().getFullYear();
+        },
+        doneDisplay() {
+            return (this.q2a ? this.done['q2a'].length : 0) + (this.a2q ? this.done['a2q'].length : 0);
+        },
+        availableDisplay() {
+            return (this.q2a ? this.available.length : 0) + (this.a2q ? this.available.length : 0);
         },
     },
     methods: {
@@ -91,11 +97,11 @@ let app = {
             this.showAnswer = true;
         },
         right() {
-            this.done.push(this.current.shift());
+            this.done[this.mode].push(this.current[this.mode].shift());
             this.nextQuestion();
         },
         wrong() {
-            this.failed.push(this.current.shift());
+            this.failed[this.mode].push(this.current[this.mode].shift());
             this.nextQuestion();
         },
         deleteRow(i) {
@@ -110,26 +116,40 @@ let app = {
             this.reset();
         },
         reset() {
-            this.current = utils.shuffle(utils.cloneObject(this.available));
-            this.done = [];
-            this.failed = [];
+            this.current = {
+                a2q: utils.shuffle(utils.cloneObject(this.available)),
+                q2a: utils.shuffle(utils.cloneObject(this.available)),
+            };
+            this.done = { a2q: [], q2a: [] };
+            this.failed = { a2q: [], q2a: [] };
             this.nextQuestion();
         },
         nextQuestion() {
             this.showAnswer = false;
 
-            if (this.current.length === 0 && this.failed.length > 0) {
-                this.current = utils.shuffle(utils.cloneObject(this.failed));
-                this.failed = [];
+            if (this.current['a2q'].length === 0 && this.failed['a2q'].length > 0) {
+                this.current['a2q'] = utils.shuffle(utils.cloneObject(this.failed['a2q']));
+                this.failed['a2q'] = [];
             }
 
-            if (this.current.length > 0) {
-                if ((this.a2q && !this.q2a) || (this.a2q === this.q2a && utils.randint(0, 2) === 1)) {
-                    this.answer = this.current[0][0];
-                    this.question = this.current[0][1];
+            if (this.current['q2a'].length === 0 && this.failed['q2a'].length > 0) {
+                this.current['q2a'] = utils.shuffle(utils.cloneObject(this.failed['q2a']));
+                this.failed['q2a'] = [];
+            }
+
+            if ((this.a2q && !this.q2a) || (this.a2q === this.q2a && this.current['a2q'].length > 0 && (this.current['q2a'].length === 0 || utils.randint(0, 2) === 1))) {
+                this.mode = 'a2q';
+            } else {
+                this.mode = 'q2a';
+            }
+
+            if (this.current[this.mode].length > 0) {
+                if (this.mode === 'a2q') {
+                    this.answer = this.current[this.mode][0][0];
+                    this.question = this.current[this.mode][0][1];
                 } else {
-                    this.question = this.current[0][0];
-                    this.answer = this.current[0][1];
+                    this.question = this.current[this.mode][0][0];
+                    this.answer = this.current[this.mode][0][1];
                 }
             }
         },
@@ -156,7 +176,6 @@ let app = {
                 this.q2a = true;
                 this.a2q = true;
             }
-            
             this.available = utils.deserialize(url.searchParams.get(this.getLetter()));
             this.showConfig = false;
             this.reset();
