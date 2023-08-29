@@ -82,21 +82,12 @@ let app = {
     },
     deleteRow(i) {
       this.available.pop(i);
-      this.updateData();
+      this.reset();
     },
     addRow() {
       if (this.newRow[0] && this.newRow[1]) {
         this.available.push(utils.cloneObject(this.newRow));
         this.newRow = ["", ""];
-      }
-      this.updateData();
-    },
-    updateData() {
-      const data = utils.serialize(this.available);
-      const url = new URL(window.location);
-      if (url.searchParams.get("d") !== data) {
-        url.searchParams.set("d", data);
-        window.history.pushState({}, "", url);
       }
       this.reset();
     },
@@ -126,6 +117,14 @@ let app = {
       this.available = utils.deserialize(url.searchParams.get("d"));
       this.showConfig = false;
       this.reset();
+    }
+  },
+  updated() {
+    const data = utils.serialize(this.available);
+    const url = new URL(window.location);
+    if (url.searchParams.get("d") !== data) {
+      url.searchParams.set("d", data);
+      window.history.pushState({}, "", url);
     }
   },
   mounted: function () {
