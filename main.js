@@ -1,109 +1,139 @@
 /* exported app, utils */
 
 const utils = {
-    ajax: {
-        proxy: 'cors-anywhere.herokuapp.com',
-        /**
-         * Define a get HTTP request to be executed with .then/.catch
-         * @param {string} url
-         * @param {Object} data
-         * @param {boolean} proxy - use cors proxy
-         * @returns {Promise<Object|string>} return JSON parsed data or string
-         */
-        get: (url, data, proxy = false) => {
-            return new Promise((resolve, reject) => {
-                if (data && Object.keys(data).length) {
-                    url += '?' + Object.keys(data)
-                        .map(k => k + '=' + encodeURIComponent(data[k]))
-                        .join('&')
-                        .replace(/%20/g, '+');
-                }
-                const xhr = new XMLHttpRequest();
-                if (proxy) {
-                    const http = (window.location.protocol === 'http:' ? 'http:' : 'https:');
-                    url = `${http}//${utils.ajax.proxy}/${url}`;
-                }
-                xhr.open('GET', url);
-                xhr.onload = () => {
-                    try {
-                        resolve(JSON.parse(xhr.responseText));
-                    } catch (ignored) {
-                        resolve(xhr.responseText);
-                    }
-                };
-                xhr.onerror = () => reject(xhr);
-                xhr.send();
-            });
-        },
-    },
-    cookies: {
-    /**
-     * Save a value in a cookie
-     * @param {string} name
-     * @param {string} value
-     * @param {number | undefined} days
-     */
-        set: function (name, value, days = undefined) {
-            const maxAge = !days ? undefined : days * 864e2;
-            document.cookie = `${name}=${encodeURIComponent(value)}${maxAge ? `;max-age=${maxAge};` : ''}`;
-        },
-        /**
-         * Get a value from a cookie
-         * @param {string} name
-         * @return {string} value from cookie or empty if not found
-         */
-        get: function (name) {
-            return document.cookie.split('; ').reduce(function (r, v) {
-                const parts = v.split('=');
-                return parts[0] === name ? decodeURIComponent(parts[1]) : r;
-            }, '');
-        },
-        /**
-         * Delete a cookie
-         * @param {string} name
-         */
-        delete: function (name) {
-            this.set(name, '', -1);
-        },
-        /**
-         * Clear all cookies
-         */
-        clear: function () {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i];
-                const eqPos = cookie.indexOf('=');
-                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-            }
-        },
-    },
+  cloneObject: function (obj) {
+    return JSON.parse(JSON.stringify(obj));
+  },
+  serialize: function (list) {
+    return LZString.compressToBase64(JSON.stringify(list));
+  },
+  deserialize: function (rawData) {
+    return JSON.parse(LZString.decompressFromBase64(rawData));
+  },
+  randint: function (min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  },
+  randindex: function (array, ...toIgnore) {
+    let index;
+    do {
+      index = this.randint(0, array.length);
+    } while (this.contains(toIgnore, index));
+    return index;
+  },
+  randitem: function (array) {
+    return array[this.randindex(array)];
+  },
+  randindexes: function (array, number, ...toIgnore) {
+    const output = [];
+    for (let i = 0; i < number; i++) {
+      output.push(this.randindex(array, ...output, ...toIgnore));
+    }
+    return output;
+  },
+  shuffle: function (array) {
+    const output = [...array];
+    for (let i = 0; i < array.length; i++) {
+      const i1 = this.randindex(array);
+      const i2 = this.randindex(array, i1);
+      [output[i1], output[i2]] = [output[i2], output[i1]];
+    }
+    return output;
+  },
+  contains: function (array, item) {
+    return array.indexOf(item) >= 0;
+  },
 };
 
 let app = {
-    data() {
-        return {
-            title: 'Vue-Boilerplate',
-            content: 'Fill this page with <i>whatever</i> you\'re going to develop.<br><b>Then enjoy!</b>',
-        };
+  data() {
+    return {
+      question: "",
+      answer: "",
+      showAnswer: false,
+      available: [],
+      current: [],
+      failed: [],
+      done: [],
+      newRow: ["", ""],
+      showConfig: true,
+    };
+  },
+  computed: {
+    currentYear() {
+      return new Date().getFullYear();
     },
-    computed: {
-        currentYear() {
-            return new Date().getFullYear();
-        },
+  },
+  methods: {
+    showApp() {
+      document.getElementById("app").setAttribute("style", "");
     },
-    methods: {
-        showApp() {
-            document.getElementById('app').setAttribute('style', '');
-        },
+    show() {
+      this.showAnswer = true;
     },
-    mounted: function () {
-        console.log('app mounted');
-        setTimeout(this.showApp);
+    right() {
+      this.done.push(this.current.shift());
+      console.log(this.current);
+      this.nextQuestion();
     },
+    wrong() {
+      this.failed.push(this.current.shift());
+      console.log(this.current);
+      this.nextQuestion();
+    },
+    deleteRow(i) {
+      this.available.pop(i);
+      this.updateData();
+    },
+    addRow() {
+      if (this.newRow[0] && this.newRow[1]) {
+        this.available.push(utils.cloneObject(this.newRow));
+        this.newRow = ["", ""];
+      }
+      this.updateData();
+    },
+    updateData() {
+      const data = utils.serialize(this.available);
+      const url = new URL(window.location);
+      if (url.searchParams.get("d") !== data) {
+        url.searchParams.set("d", data);
+        window.history.pushState({}, "", url);
+      }
+      this.reset();
+    },
+    reset() {
+      this.current = utils.shuffle(utils.cloneObject(this.available));
+      this.done = [];
+      this.failed = [];
+      this.nextQuestion();
+    },
+    nextQuestion() {
+      this.showAnswer = false;
+
+      if (this.current.length === 0 && this.failed.length > 0) {
+        this.current = utils.shuffle(utils.cloneObject(this.failed));
+        this.failed = [];
+      }
+
+      if (this.current.length > 0) {
+        this.question = this.current[0][0];
+        this.answer = this.current[0][1];
+      }
+    },
+  },
+  beforeMount() {
+    const url = new URL(window.location);
+    if (url.searchParams.get("d")) {
+      this.available = utils.deserialize(url.searchParams.get("d"));
+      this.showConfig = false;
+      this.reset();
+    }
+  },
+  mounted: function () {
+    setTimeout(this.showApp);
+  },
 };
 
 window.onload = () => {
-    app = Vue.createApp(app);
-    app.mount('#app');
+  app = Vue.createApp(app);
+  app.mount("#app");
 };

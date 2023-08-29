@@ -2,30 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Change this you moron</title>
+    <title>Memory Helper</title>
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="libs/vue.global.js"></script>
+    <script type="text/javascript" src="libs/lz-string.min.js"></script>
     <script type="text/javascript" src="main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- card related -->
-    <!--
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="og:title" content="">
-    <meta property="twitter:title" content="">
-    <meta property="og:description" content="">
-    <meta property="twitter:description" content="">
-    <meta property="og:image" content="https://.../preview_640x320.jpg">
-    <meta property="twitter:image" content="">
-    <meta property="org:url" content="https://...">
-    -->
 </head>
 <body>
     <main id="app" style="display:none">
-        <h1>{{title}}</h1>
-        <br>
-        <p v-html="content"></p>
-        <br>
-        <small><a href="https://twitter.com/_klemek" target="_blank">@Klemek</a> - <a href="" target="_blank">Github Repository</a> - {{currentYear}}</small>
+        <h1>Memory Helper</h1>
+        <div v-if="available.length > 0">
+            <div id='status'>Status : {{ done.length }}/{{ available.length }}</div>
+            <div v-if="current.length === 0">
+                <div class="main"><span id="question">🎉</span></div>
+                <div class="button-container">
+                    <div type="button" class="button long" v-on:click="reset">Reset</div>
+                </div>
+            </div>
+            <div v-if="current.length > 0">
+                <div class="main"><span id="question">{{question}}</span></div>
+                <div class="main"><span id="answer">{{showAnswer ? answer : '???'}}</span></div>
+                <div class="button-container">
+                    <div type="button" class="button long" v-if="!showAnswer" v-on:click="show">Show</div>
+                    <div type="button" class="button right" v-if="showAnswer" v-on:click="right">✔</div>
+                    <div type="button" class="button wrong" v-if="showAnswer" v-on:click="wrong">✘</div>
+                </div>
+            </div>
+            
+            <br>
+            <hr>
+        </div>
+        <div>
+            <h2 v-on:click="showConfig = !showConfig"  class="expand">List <small>{{showConfig ? '▼' : '▲'}}</small></h2>
+            <table class="config" v-if="showConfig">
+                <tr v-for="(row, i) in available">
+                    <td><input placeholder="question" v-bind:value="row[0]" v-on:change="row[0] = $event.target.value"></td>
+                    <td><input placeholder="answer" v-bind:value="row[1]" v-on:change="row[1] = $event.target.value"></td>
+                    <td><button v-on:click="deleteRow(i)">Delete</button></td>
+                </tr>
+                <tr>
+                    <td><input placeholder="question" v-bind:value="newRow[0]" v-on:change="newRow[0] = $event.target.value"></td>
+                    <td><input placeholder="answer" v-bind:value="newRow[1]" v-on:change="newRow[1] = $event.target.value"></td>
+                    <td><button v-on:click="addRow">Add</button></td>
+                </tr>
+            </table>
+        <hr>
+        <small><a href="https://twitter.com/_klemek" target="_blank">@Klemek</a> - <a href="https://github.com/Klemek/memory-helper" target="_blank">Github Repository</a> - {{currentYear}}</small>
     </main>
 </body>
 </html>

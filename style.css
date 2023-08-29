@@ -1,42 +1,148 @@
-* {
-    box-sizing: border-box;
-    font-family: Verdana, serif;
-    color: #424242;
+/* noto-sans-regular - latin */
+@font-face {
+  font-family: "Noto Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("fonts/NotoSansJP-Regular.otf");
 }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    max-width: 100%;
+* {
+  box-sizing: border-box;
+  font-family: "Noto Sans", Verdana, serif;
+  color: #424242;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  max-width: 100%;
 }
 
 body {
-    background-color: #F5F5F5;
+  background-color: #f5f5f5;
 }
 
 main {
-    padding: 1.5rem;
-    margin: auto;
-    background-color: #EEEEEE;
-    min-height: 100%;
+  padding: 1.5rem;
+  margin: auto;
+  background-color: #eeeeee;
+  min-height: 100%;
 }
 
 h1 {
-    margin-bottom: .5em;
-}
-
-table{
-    border-collapse: collapse;
-    width:100%;
-    font-size: .9em;
+  margin-bottom: 0.5em;
 }
 
 @media only screen and (min-width: 768px) {
-    main {
-        max-width: 42rem;
-    }
-    table{
-        font-size:inherit;
-    }
+  main {
+    max-width: 42rem;
+  }
+}
+
+.main {
+  text-align: center;
+  font-size: 2em;
+}
+
+.main > span {
+  line-height: 1.5em;
+}
+
+#question {
+  font-weight: bold;
+}
+
+#answer {
+  color: #616161;
+}
+
+.button-container {
+  text-align: center;
+}
+
+.button {
+  font-size: 1.5em;
+  width: 6em;
+  height: 2.3em;
+  text-align: center;
+  padding: 0;
+  margin: 0.2em;
+  border: 1px solid #424242;
+  border-radius: 0.1em;
+  display: inline-block;
+  line-height: 2em;
+  cursor: pointer;
+  background-color: #fafafa;
+  color: #424242;
+  user-select: none;
+}
+
+.button.long {
+  width: 12em;
+}
+
+.button.right {
+  background-color: #8bc34a;
+  color: #eeeeee;
+}
+
+.button.wrong {
+  background-color: #e53935;
+  color: #eeeeee;
+}
+
+.button:active {
+  background-color: #757575;
+  color: #eeeeee;
+}
+
+.button.right:active {
+  background-color: #558b2f;
+  color: #eeeeee;
+}
+
+.button.wrong:active {
+  background-color: #c62828;
+  color: #eeeeee;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    background-color: #e0e0e0;
+    color: #424242;
+  }
+
+  .button.right:hover {
+    background-color: #7cb342;
+    color: #eeeeee;
+  }
+
+  .button.wrong:hover {
+    background-color: #d32f2f;
+    color: #eeeeee;
+  }
+}
+
+table.config {
+  border-collapse: collapse;
+}
+
+table.config td {
+  padding: 0.2em;
+  max-width: 30%;
+}
+
+table.config td button {
+  width: 100%;
+}
+
+table.config td input {
+  width: 15em;
+}
+
+.expand {
+  cursor: pointer;
+  user-select: none;
 }
