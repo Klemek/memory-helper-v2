@@ -61,14 +61,12 @@ let app = {
             showConfig: true,
             q2a: true,
             a2q: false,
+            size: 0,
         };
     },
     computed: {
         currentYear() {
             return new Date().getFullYear();
-        },
-        urlLength() {
-            return window.location.toString().length;
         },
     },
     methods: {
@@ -129,6 +127,7 @@ let app = {
             this.showConfig = false;
             this.reset();
         }
+        this.size = url.href.length;
     },
     updated() {
         const data = utils.serialize(this.available);
@@ -137,6 +136,7 @@ let app = {
             url.searchParams.set('d', data);
             window.history.pushState({}, '', url);
         }
+        this.size = url.href.length;
     },
     mounted: function () {
         setTimeout(this.showApp);

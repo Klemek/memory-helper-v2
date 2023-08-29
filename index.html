@@ -46,17 +46,17 @@
                     <td><input placeholder="answer" v-bind:value="row[1]" v-on:change="row[1] = $event.target.value"></td>
                     <td><button v-on:click="deleteRow(i)">Delete</button></td>
                 </tr>
-                <tr v-if="urlLength < 2048">
+                <tr v-if="size < 2048">
                     <td><input placeholder="question" v-bind:value="newRow[0]" v-on:change="newRow[0] = $event.target.value"></td>
                     <td><input placeholder="answer" v-bind:value="newRow[1]" v-on:change="newRow[1] = $event.target.value"></td>
                     <td><button v-on:click="addRow">Add</button></td>
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <progress max="2048" v-bind:value="urlLength"></progress>
+                        <progress max="2048" v-bind:value="size"></progress>
                     </td>
                     <td>
-                        {{ urlLength }} / 2048
+                        {{ size }} / 2048
                     </td>
                 </tr>
             </table>
