@@ -139,7 +139,7 @@ table.config td button, table.config td progress {
 }
 
 table.config td input {
-  width: 15em;
+  width: 30em;
 }
 
 table.config td input[type=checkbox] {

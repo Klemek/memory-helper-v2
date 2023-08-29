@@ -4,25 +4,6 @@ const utils = {
     cloneObject: function (obj) {
         return JSON.parse(JSON.stringify(obj));
     },
-    serialize: function (list) {
-        return LZString.compressToEncodedURIComponent(list.map(v => v.join('|')).join('|'));
-    },
-    deserialize: function (rawData) {
-        const data = LZString.decompressFromBase64(rawData) ?? LZString.decompressFromEncodedURIComponent(rawData);
-        try {
-            return JSON.parse(data);
-        } catch {
-            let output = [];
-            data.split('|').forEach((v, i) => {
-                if (i % 2 === 0) {
-                    output.push([ v, '' ]);
-                } else {
-                    output[output.length - 1][1] = v;
-                }
-            });
-            return output;
-        }
-    },
     randint: function (min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     },
@@ -63,18 +44,19 @@ const utils = {
 let app = {
     data() {
         return {
-            question: '',
-            answer: '',
             showAnswer: false,
             available: [],
             current: {},
             failed: {},
             done: {},
-            newRow: [ '', '' ],
             showConfig: true,
-            modes: [ 0 ],
+            modes: [ ],
             size: 0,
             mode: 0,
+            title: '',
+            url: '',
+            error: '',
+            columns: [],
         };
     },
     computed: {
@@ -83,40 +65,21 @@ let app = {
         },
         doneDisplay() {
             return this.modes
-                .map(m => this.done[m].length)
+                .map(m => this.done[m]?.length ?? 0)
                 .reduce((a, b) => a + b, 0);
         },
         availableDisplay() {
             return this.modes.length * this.available.length;
         },
         allDone() {
-            return this.modes.filter(m => this.current[m].length > 0).length === 0;
+            return this.modes.filter(m => (this.current[m]?.length ?? 0) > 0).length === 0;
         },
-        q2a: {
-            get() {
-                return this.modes.indexOf(0) >= 0;
-            },
-            set(newValue) {
-                if (!newValue && this.modes.length > 1) {
-                    this.modes.splice(this.modes.indexOf(0), 1);
-                } else if (!this.q2a) {
-                    this.modes.push(0);
-                }
-                this.reset();
-            },
-        },
-        a2q: {
-            get() {
-                return this.modes.indexOf(1) >= 0;
-            },
-            set(newValue) {
-                if (!newValue && this.modes.length > 1) {
-                    this.modes.splice(this.modes.indexOf(1), 1);
-                } else if (!this.a2q) {
-                    this.modes.push(1);
-                }
-                this.reset();
-            },
+        currentItem() {
+            if (! this.current[this.mode]?.length) {
+                return null;
+            }
+
+            return this.current[this.mode][0];
         },
     },
     methods: {
@@ -134,22 +97,13 @@ let app = {
             this.failed[this.mode].push(this.current[this.mode].shift());
             this.nextQuestion();
         },
-        deleteRow(i) {
-            this.available.splice(i, 1);
-            this.reset();
-        },
-        addRow() {
-            if (this.newRow[0] && this.newRow[1]) {
-                this.available.push(utils.cloneObject(this.newRow));
-                this.newRow = [ '', '' ];
-            }
-            this.reset();
-        },
         reset() {
             this.current = Object.fromEntries(this.modes.map(m => [ m, utils.shuffle(utils.cloneObject(this.available)) ]));
             this.done = Object.fromEntries(this.modes.map(m => [ m, [] ]));
             this.failed = Object.fromEntries(this.modes.map(m => [ m, [] ]));
-            this.nextQuestion();
+            if (this.modes.length) {
+                this.nextQuestion();
+            }
         },
         nextQuestion() {
             this.showAnswer = false;
@@ -169,49 +123,55 @@ let app = {
             } while (this.current[newMode].length === 0 && tries < 100);
 
             this.mode = newMode;
-
-            if (this.current[this.mode].length > 0) {
-                this.question = this.current[this.mode][0][this.mode];
-                this.answer = this.current[this.mode][0][1 - this.mode];
+        },
+        change(n, value) {
+            if (!value && this.modes.length > 1) {
+                this.modes.splice(this.modes.indexOf(n), 1);
+            } else if (value && !utils.contains(this.modes, n)) {
+                this.modes.push(n);
+            }
+            this.reset();
+        },
+        dataComplete(results) {
+            if (results.errors.length) {
+                this.error = 'CSV file contains errors';
+            } else {
+                this.columns = results.data.shift();
+                this.modes = this.columns.map((_, i) => i);
+                this.available = results.data;
+                this.reset();
             }
         },
-        getLetter() {
-            if (this.modes.length === 1 && this.modes[0] === 0) {
-                return 'd';
+        dataError() {
+            this.error = 'Could not read file';
+        },
+    },
+    watch: {
+        async url(newValue) {
+            this.available = [];
+            this.error = '';
+            if (newValue) {
+                Papa.parse(newValue, {
+                    download: true,
+                    complete: this.dataComplete,
+                    error: this.dataError,
+                });
             }
-            if (this.modes.length === 1 && this.modes[0] === 1) {
-                return 'e';
-            }
-            return 'f';
         },
     },
     beforeMount() {
         const url = new URL(window.location);
-        if (url.searchParams.get('d') || url.searchParams.get('e') || url.searchParams.get('f')) {
-            if (url.searchParams.get('d')) {
-                this.modes = [ 0 ];
-            } else if (url.searchParams.get('e')) {
-                this.modes = [ 1 ];
-            } else {
-                this.modes = [ 0, 1 ];
-            }
-            this.available = utils.deserialize(url.searchParams.get(this.getLetter()));
-            this.showConfig = false;
-            this.reset();
-        }
-        this.size = url.href.length;
+        this.url = url.searchParams.get('url') ?? '';
+        this.title = url.searchParams.get('title') ?? '';
+        this.showConfig = !this.url;
     },
     updated() {
-        const data = utils.serialize(this.available);
         const url = new URL(window.location);
-        if (url.searchParams.get(this.getLetter()) !== data) {
-            url.searchParams.delete('d');
-            url.searchParams.delete('e');
-            url.searchParams.delete('f');
-            url.searchParams.set(this.getLetter(), data);
+        if (url.searchParams.get('url') !== this.url || url.searchParams.get('title') !== this.title) {
+            url.searchParams.set('url', this.url);
+            url.searchParams.set('title', this.title);
             window.history.pushState({}, '', url);
         }
-        this.size = url.href.length;
     },
     mounted: function () {
         setTimeout(this.showApp);

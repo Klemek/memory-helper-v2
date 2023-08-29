@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Memory Helper</title>
+    <title>Memory Helper v2</title>
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript" src="libs/vue.global.js"></script>
-    <script type="text/javascript" src="libs/lz-string.min.js"></script>
+    <script type="text/javascript" src="libs/papaparse.min.js"></script>
     <script type="text/javascript" src="main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
     <main id="app" style="display:none">
-        <h1>Memory Helper</h1>
+        <h1>Memory Helper v2<small v-if="title"><br> {{ title }}</small></h1>
         <div v-if="available.length > 0">
             <div id='status'>Status : {{ doneDisplay }}/{{ availableDisplay }}</div>
             <div v-if="allDone">
@@ -20,46 +20,47 @@
                     <div type="button" class="button long" v-on:click="reset">Reset</div>
                 </div>
             </div>
-            <div v-else>
-                <div class="main"><span id="question">{{question}}</span></div>
-                <div class="main"><span id="answer">{{showAnswer ? answer : '???'}}</span></div>
+            <div v-else-if="currentItem">
+                <div class="main"><span id="question">{{ columns[mode] }} : {{ currentItem[mode] }}</span></div>
+                <template v-if="showAnswer" v-for="(column, i) in columns">
+                    <div v-if="i !== mode" class="main"><span id="answer">{{ column }} : {{ currentItem[i] }}</span></div>
+                </template>
                 <div class="button-container">
                     <div type="button" class="button long" v-if="!showAnswer" v-on:click="show">Show</div>
                     <div type="button" class="button right" v-if="showAnswer" v-on:click="right">✔</div>
                     <div type="button" class="button wrong" v-if="showAnswer" v-on:click="wrong">✘</div>
                 </div>
             </div>
-            
             <br>
             <hr>
         </div>
+        <div v-else>
+            <h3 v-if="error">{{ error }}</h3>
+            <h3 v-else>(Please provide data below)</h3>
+        </div>
         <div>
-            <h2 v-on:click="showConfig = !showConfig"  class="expand">{{showConfig ? '▾' : '▸'}} List ({{ available.length }})</h2>
-            <table class="config" v-if="showConfig">
-                <tr>
-                    <td><input type="checkbox" v-model="q2a"/>&nbsp;Q&nbsp;→&nbsp;A</td>
-                    <td><input type="checkbox" v-model="a2q"/>&nbsp;A&nbsp;→&nbsp;Q</td>
-                    <td></td>
-                </tr>
-                <tr v-for="(row, i) in available">
-                    <td><input placeholder="question" v-bind:value="row[0]" v-on:change="row[0] = $event.target.value"></td>
-                    <td><input placeholder="answer" v-bind:value="row[1]" v-on:change="row[1] = $event.target.value"></td>
-                    <td><button v-on:click="deleteRow(i)">Delete</button></td>
-                </tr>
-                <tr v-if="size < 2048">
-                    <td><input placeholder="question" v-bind:value="newRow[0]" v-on:change="newRow[0] = $event.target.value"></td>
-                    <td><input placeholder="answer" v-bind:value="newRow[1]" v-on:change="newRow[1] = $event.target.value"></td>
-                    <td><button v-on:click="addRow">Add</button></td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <progress max="2048" v-bind:value="size"></progress>
-                    </td>
-                    <td>
-                        {{ size }} / 2048
-                    </td>
-                </tr>
-            </table>
+            <h2 v-on:click="showConfig = !showConfig"  class="expand">{{showConfig ? '▾' : '▸'}} Config</h2>
+            <div v-if="showConfig">
+                <table class="config">
+                    <tr>
+                        <td><label for="title">Title:</label></td>
+                        <td><input id="title" v-model.lazy="title" placeholder="change title"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="url">URL (CSV data):</label></td>
+                        <td><input id="url" v-model.lazy="url"></td>
+                    </tr>
+                </table>
+                <hr>
+                <table class="config">
+                    <tr v-for="(column, i) in columns">
+                        <td colspan="2">
+                            <input type="checkbox" v-bind:checked="modes.indexOf(i) >= 0" v-on:click="(event) => change(i, event.target.checked)"/>&nbsp;
+                            <label>{{ column }}</label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         <hr>
         <small><a href="https://twitter.com/_klemek" target="_blank">@Klemek</a> - <a href="https://github.com/Klemek/memory-helper" target="_blank">Github Repository</a> - {{currentYear}}</small>
     </main>

@@ -6,7 +6,7 @@ module.exports = {
     },
     globals: {
         Vue: 'readonly',
-        LZString: 'readonly',
+        Papa: 'readonly',
     },
     extends: [ 'eslint:recommended' ],
     parserOptions: {
