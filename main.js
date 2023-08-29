@@ -119,11 +119,31 @@ let app = {
                 }
             }
         },
+        getLetter() {
+            if (this.q2a && !this.a2q) {
+                return 'd';
+            }
+            if (this.a2q && !this.q2a) {
+                return 'e';
+            }
+            return 'f';
+        },
     },
     beforeMount() {
         const url = new URL(window.location);
-        if (url.searchParams.get('d')) {
-            this.available = utils.deserialize(url.searchParams.get('d'));
+        if (url.searchParams.get('d') || url.searchParams.get('e') || url.searchParams.get('f')) {
+            if (url.searchParams.get('d')) {
+                this.q2a = true;
+                this.a2q = false;
+            } else if (url.searchParams.get('e')) {
+                this.q2a = false;
+                this.a2q = true;
+            } else {
+                this.q2a = true;
+                this.a2q = true;
+            }
+            
+            this.available = utils.deserialize(url.searchParams.get(this.getLetter()));
             this.showConfig = false;
             this.reset();
         }
@@ -132,8 +152,11 @@ let app = {
     updated() {
         const data = utils.serialize(this.available);
         const url = new URL(window.location);
-        if (url.searchParams.get('d') !== data) {
-            url.searchParams.set('d', data);
+        if (url.searchParams.get(this.getLetter()) !== data) {
+            url.searchParams.delete('d');
+            url.searchParams.delete('e');
+            url.searchParams.delete('f');
+            url.searchParams.set(this.getLetter(), data);
             window.history.pushState({}, '', url);
         }
         this.size = url.href.length;
