@@ -134,7 +134,7 @@ table.config td {
   max-width: 30%;
 }
 
-table.config td button {
+table.config td button, table.config td progress {
   width: 100%;
 }
 

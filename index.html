@@ -51,6 +51,14 @@
                     <td><input placeholder="answer" v-bind:value="newRow[1]" v-on:change="newRow[1] = $event.target.value"></td>
                     <td><button v-on:click="addRow">Add</button></td>
                 </tr>
+                <tr>
+                    <td colspan="2">
+                        <progress max="2048" v-bind:value="urlLength"></progress>
+                    </td>
+                    <td>
+                        {{ urlLength }} / 2048
+                    </td>
+                </tr>
             </table>
         <hr>
         <small><a href="https://twitter.com/_klemek" target="_blank">@Klemek</a> - <a href="https://github.com/Klemek/memory-helper" target="_blank">Github Repository</a> - {{currentYear}}</small>
