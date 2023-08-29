@@ -32,6 +32,9 @@ const utils = {
   },
   shuffle: function (array) {
     const output = [...array];
+    if (output.length < 2) {
+      return output;
+    }
     for (let i = 0; i < array.length; i++) {
       const i1 = this.randindex(array);
       const i2 = this.randindex(array, i1);
@@ -61,6 +64,9 @@ let app = {
   computed: {
     currentYear() {
       return new Date().getFullYear();
+    },
+    urlLength() {
+      return window.location.toString().length;
     },
   },
   methods: {
