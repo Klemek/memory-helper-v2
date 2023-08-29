@@ -5,10 +5,22 @@ const utils = {
         return JSON.parse(JSON.stringify(obj));
     },
     serialize: function (list) {
-        return LZString.compressToBase64(JSON.stringify(list));
+        return LZString.compressToEncodedURIComponent(list.map(v => v.join('|')).join('|'));
     },
     deserialize: function (rawData) {
-        return JSON.parse(LZString.decompressFromBase64(rawData));
+        try {
+            return JSON.parse(LZString.decompressFromBase64(rawData));
+        } catch {
+            let output = [];
+            LZString.decompressFromEncodedURIComponent(rawData).split('|').forEach((v, i) => {
+                if (i % 2 === 0) {
+                    output.push([v, '']);
+                } else {
+                    output[output.length - 1][1] = v;
+                }
+            });
+            return output;
+        }
     },
     randint: function (min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
