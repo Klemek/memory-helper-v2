@@ -67,15 +67,14 @@ let app = {
             answer: '',
             showAnswer: false,
             available: [],
-            current: { a2q: [], q2a: [] },
-            failed: { a2q: [], q2a: [] },
-            done: { a2q: [], q2a: [] },
+            current: {},
+            failed: {},
+            done: {},
             newRow: [ '', '' ],
             showConfig: true,
-            q2a: true,
-            a2q: false,
+            modes: [ 0 ],
             size: 0,
-            mode: 'q2a',
+            mode: 0,
         };
     },
     computed: {
@@ -83,10 +82,41 @@ let app = {
             return new Date().getFullYear();
         },
         doneDisplay() {
-            return (this.q2a ? this.done['q2a'].length : 0) + (this.a2q ? this.done['a2q'].length : 0);
+            return this.modes
+                .map(m => this.done[m].length)
+                .reduce((a, b) => a + b, 0);
         },
         availableDisplay() {
-            return (this.q2a ? this.available.length : 0) + (this.a2q ? this.available.length : 0);
+            return this.modes.length * this.available.length;
+        },
+        allDone() {
+            return this.modes.filter(m => this.current[m].length > 0).length === 0;
+        },
+        q2a: {
+            get() {
+                return this.modes.indexOf(0) >= 0;
+            },
+            set(newValue) {
+                if (!newValue && this.modes.length > 1) {
+                    this.modes.splice(this.modes.indexOf(0), 1);
+                } else if (!this.q2a) {
+                    this.modes.push(0);
+                }
+                this.reset();
+            },
+        },
+        a2q: {
+            get() {
+                return this.modes.indexOf(1) >= 0;
+            },
+            set(newValue) {
+                if (!newValue && this.modes.length > 1) {
+                    this.modes.splice(this.modes.indexOf(1), 1);
+                } else if (!this.a2q) {
+                    this.modes.push(1);
+                }
+                this.reset();
+            },
         },
     },
     methods: {
@@ -116,48 +146,40 @@ let app = {
             this.reset();
         },
         reset() {
-            this.current = {
-                a2q: utils.shuffle(utils.cloneObject(this.available)),
-                q2a: utils.shuffle(utils.cloneObject(this.available)),
-            };
-            this.done = { a2q: [], q2a: [] };
-            this.failed = { a2q: [], q2a: [] };
+            this.current = Object.fromEntries(this.modes.map(m => [ m, utils.shuffle(utils.cloneObject(this.available)) ]));
+            this.done = Object.fromEntries(this.modes.map(m => [ m, [] ]));
+            this.failed = Object.fromEntries(this.modes.map(m => [ m, [] ]));
             this.nextQuestion();
         },
         nextQuestion() {
             this.showAnswer = false;
 
-            if (this.current['a2q'].length === 0 && this.failed['a2q'].length > 0) {
-                this.current['a2q'] = utils.shuffle(utils.cloneObject(this.failed['a2q']));
-                this.failed['a2q'] = [];
-            }
+            this.modes.forEach(m => {
+                if (this.current[m].length === 0 && this.failed[m].length > 0) {
+                    this.current[m] = utils.shuffle(utils.cloneObject(this.failed[m]));
+                    this.failed[m] = [];
+                }
+            });
 
-            if (this.current['q2a'].length === 0 && this.failed['q2a'].length > 0) {
-                this.current['q2a'] = utils.shuffle(utils.cloneObject(this.failed['q2a']));
-                this.failed['q2a'] = [];
-            }
+            let tries = 0;
+            let newMode;
+            do {
+                tries++;
+                newMode = utils.randitem(this.modes);
+            } while (this.current[newMode].length === 0 && tries < 100);
 
-            if ((this.a2q && !this.q2a) || (this.a2q === this.q2a && this.current['a2q'].length > 0 && (this.current['q2a'].length === 0 || utils.randint(0, 2) === 1))) {
-                this.mode = 'a2q';
-            } else {
-                this.mode = 'q2a';
-            }
+            this.mode = newMode;
 
             if (this.current[this.mode].length > 0) {
-                if (this.mode === 'a2q') {
-                    this.answer = this.current[this.mode][0][0];
-                    this.question = this.current[this.mode][0][1];
-                } else {
-                    this.question = this.current[this.mode][0][0];
-                    this.answer = this.current[this.mode][0][1];
-                }
+                this.question = this.current[this.mode][0][this.mode];
+                this.answer = this.current[this.mode][0][1 - this.mode];
             }
         },
         getLetter() {
-            if (this.q2a && !this.a2q) {
+            if (this.modes.length === 1 && this.modes[0] === 0) {
                 return 'd';
             }
-            if (this.a2q && !this.q2a) {
+            if (this.modes.length === 1 && this.modes[0] === 1) {
                 return 'e';
             }
             return 'f';
@@ -167,14 +189,11 @@ let app = {
         const url = new URL(window.location);
         if (url.searchParams.get('d') || url.searchParams.get('e') || url.searchParams.get('f')) {
             if (url.searchParams.get('d')) {
-                this.q2a = true;
-                this.a2q = false;
+                this.modes = [ 0 ];
             } else if (url.searchParams.get('e')) {
-                this.q2a = false;
-                this.a2q = true;
+                this.modes = [ 1 ];
             } else {
-                this.q2a = true;
-                this.a2q = true;
+                this.modes = [ 0, 1 ];
             }
             this.available = utils.deserialize(url.searchParams.get(this.getLetter()));
             this.showConfig = false;

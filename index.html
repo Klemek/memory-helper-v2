@@ -14,13 +14,13 @@
         <h1>Memory Helper</h1>
         <div v-if="available.length > 0">
             <div id='status'>Status : {{ doneDisplay }}/{{ availableDisplay }}</div>
-            <div v-if="current[mode].length === 0">
+            <div v-if="allDone">
                 <div class="main"><span id="question">🎉</span></div>
                 <div class="button-container">
                     <div type="button" class="button long" v-on:click="reset">Reset</div>
                 </div>
             </div>
-            <div v-if="current[mode].length > 0">
+            <div v-else>
                 <div class="main"><span id="question">{{question}}</span></div>
                 <div class="main"><span id="answer">{{showAnswer ? answer : '???'}}</span></div>
                 <div class="button-container">
@@ -37,8 +37,8 @@
             <h2 v-on:click="showConfig = !showConfig"  class="expand">{{showConfig ? '▾' : '▸'}} List ({{ available.length }})</h2>
             <table class="config" v-if="showConfig">
                 <tr>
-                    <td><input type="checkbox" v-model="q2a" @click="reset"/>&nbsp;Q&nbsp;→&nbsp;A</td>
-                    <td><input type="checkbox" v-model="a2q" @click="reset"/>&nbsp;A&nbsp;→&nbsp;Q</td>
+                    <td><input type="checkbox" v-model="q2a"/>&nbsp;Q&nbsp;→&nbsp;A</td>
+                    <td><input type="checkbox" v-model="a2q"/>&nbsp;A&nbsp;→&nbsp;Q</td>
                     <td></td>
                 </tr>
                 <tr v-for="(row, i) in available">
