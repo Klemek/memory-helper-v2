@@ -36,6 +36,11 @@
         <div>
             <h2 v-on:click="showConfig = !showConfig"  class="expand">{{showConfig ? '▾' : '▸'}} List ({{ available.length }})</h2>
             <table class="config" v-if="showConfig">
+                <tr>
+                    <td><input type="checkbox" v-model="q2a" @click="nextQuestion"/>&nbsp;Q&nbsp;→&nbsp;A</td>
+                    <td><input type="checkbox" v-model="a2q" @click="nextQuestion"/>&nbsp;A&nbsp;→&nbsp;Q</td>
+                    <td></td>
+                </tr>
                 <tr v-for="(row, i) in available">
                     <td><input placeholder="question" v-bind:value="row[0]" v-on:change="row[0] = $event.target.value"></td>
                     <td><input placeholder="answer" v-bind:value="row[1]" v-on:change="row[1] = $event.target.value"></td>

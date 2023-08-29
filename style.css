@@ -142,6 +142,10 @@ table.config td input {
   width: 15em;
 }
 
+table.config td input[type=checkbox] {
+  width: inherit !important;
+}
+
 .expand {
   cursor: pointer;
   user-select: none;

@@ -59,6 +59,8 @@ let app = {
             done: [],
             newRow: [ '', '' ],
             showConfig: true,
+            q2a: true,
+            a2q: false,
         };
     },
     computed: {
@@ -112,8 +114,13 @@ let app = {
             }
 
             if (this.current.length > 0) {
-                this.question = this.current[0][0];
-                this.answer = this.current[0][1];
+                if ((this.a2q && !this.q2a) || (this.a2q === this.q2a && utils.randint(0, 2) === 1)) {
+                    this.anser = this.current[0][0];
+                    this.question = this.current[0][1];
+                } else {
+                    this.question = this.current[0][0];
+                    this.answer = this.current[0][1];
+                }
             }
         },
     },
