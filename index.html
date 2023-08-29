@@ -21,9 +21,9 @@
                 </div>
             </div>
             <div v-else-if="currentItem">
-                <div class="main"><span id="question">{{ columns[mode] }} : {{ currentItem[mode] }}</span></div>
+                <div class="main"><span id="question" v-html="getFormatedData(mode)"></span></div>
                 <template v-if="showAnswer" v-for="(column, i) in columns">
-                    <div v-if="i !== mode" class="main"><span id="answer">{{ column }} : {{ currentItem[i] }}</span></div>
+                    <div v-if="i !== mode" class="main"><span id="answer" v-html="getFormatedData(i)"></span></div>
                 </template>
                 <div class="button-container">
                     <div type="button" class="button long" v-if="!showAnswer" v-on:click="show">Show</div>

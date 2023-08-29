@@ -83,6 +83,12 @@ let app = {
         },
     },
     methods: {
+        getFormatedData(i) {
+            if (this.currentItem[i].startsWith('data:')) {
+                return this.columns[i] + ' :<br><img src="' + this.currentItem[i] + '" />';
+            }
+            return this.columns[i] + ' : ' + this.currentItem[i];
+        },
         showApp() {
             document.getElementById('app').setAttribute('style', '');
         },
