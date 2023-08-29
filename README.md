@@ -8,5 +8,5 @@
 ## TODO
 [] readme
 [x] handle images
-[] save modes
+[x] save modes
 [] remove empty values from available data

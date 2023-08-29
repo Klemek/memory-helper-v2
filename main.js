@@ -142,8 +142,14 @@ let app = {
             if (results.errors.length) {
                 this.error = 'CSV file contains errors';
             } else {
+                const url = new URL(window.location);
                 this.columns = results.data.shift();
                 this.modes = this.columns.map((_, i) => i);
+                if (url.searchParams.get('modes')) {
+                    try {
+                        this.modes = JSON.parse(url.searchParams.get('modes')).filter(m => m < this.columns.length);
+                    } catch {}
+                }
                 this.available = results.data;
                 this.reset();
             }
@@ -173,9 +179,14 @@ let app = {
     },
     updated() {
         const url = new URL(window.location);
-        if (url.searchParams.get('url') !== this.url || url.searchParams.get('title') !== this.title) {
+        if (
+            url.searchParams.get('url') !== this.url ||
+            url.searchParams.get('title') !== this.title ||
+            url.searchParams.get('modes') !== JSON.stringify(this.modes)
+        ) {
             url.searchParams.set('url', this.url);
             url.searchParams.set('title', this.title);
+            url.searchParams.set('modes', JSON.stringify(this.modes));
             window.history.pushState({}, '', url);
         }
     },
