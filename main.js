@@ -87,7 +87,7 @@ let app = {
       this.nextQuestion();
     },
     deleteRow(i) {
-      this.available.pop(i);
+      this.available.splice(i, 1);
       this.reset();
     },
     addRow() {
