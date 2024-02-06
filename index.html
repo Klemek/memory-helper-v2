@@ -22,13 +22,22 @@
             </div>
             <div v-else-if="currentItem">
                 <div class="main"><span id="question" v-html="getFormatedData(mode)"></span></div>
-                <template v-if="showAnswer" v-for="(column, i) in columns">
+                <template v-if="showAnswer && !multiple" v-for="(column, i) in columns">
                     <div v-if="i !== mode" class="main"><span id="answer" v-html="getFormatedData(i)"></span></div>
                 </template>
-                <div class="button-container">
+                <div class="button-container" v-if="!multiple">
                     <div type="button" class="button long" v-if="!showAnswer" v-on:click="show">Show</div>
                     <div type="button" class="button right" v-if="showAnswer" v-on:click="right">✔</div>
                     <div type="button" class="button wrong" v-if="showAnswer" v-on:click="wrong">✘</div>
+                </div>
+                <div class="button-container" v-else>
+                    <template v-for="(answer, j) in answers">
+                        <div class="button long" @click="clickAnswer(j)" :class="{right: showAnswer && answer[columns.length] === currentItem[columns.length], wrong: showAnswer && j === answered && answer[columns.length] !== currentItem[columns.length]}">
+                            <template v-for="(column, i) in columns">
+                                <div v-if="i !== mode"><span v-html="getFormatedDataAnswer(i, j)"></span></div>
+                            </template>
+                        </div>
+                    </template>
                 </div>
             </div>
             <br>
@@ -49,6 +58,10 @@
                     <tr>
                         <td><label for="url">URL (CSV data):</label></td>
                         <td><input id="url" v-model.lazy="url"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="multiple">Choices (0 = no choices):</label></td>
+                        <td><input type="number" id="multiple" v-model.lazy="multiple"></td>
                     </tr>
                 </table>
                 <hr>

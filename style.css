@@ -65,7 +65,7 @@ h1 {
 .button {
   font-size: 1.5em;
   width: 6em;
-  height: 2.3em;
+  /* height: 2.3em; */
   text-align: center;
   padding: 0;
   margin: 0.2em;
@@ -79,47 +79,59 @@ h1 {
   user-select: none;
 }
 
-.button.long {
-  width: 12em;
+.button > div {
+  line-height: 1.5em;
 }
 
-.button.right {
+.button.long {
+  width: 100%;
+}
+
+.button.right,
+.button.right * {
   background-color: #8bc34a;
   color: #eeeeee;
 }
 
-.button.wrong {
+.button.wrong,
+.button.wrong * {
   background-color: #e53935;
   color: #eeeeee;
 }
 
-.button:active {
+.button:active,
+.button:active * {
   background-color: #757575;
   color: #eeeeee;
 }
 
-.button.right:active {
+.button.right:active,
+.button.right:active * {
   background-color: #558b2f;
   color: #eeeeee;
 }
 
-.button.wrong:active {
+.button.wrong:active,
+.button.wrong:active * {
   background-color: #c62828;
   color: #eeeeee;
 }
 
 @media (hover: hover) {
-  .button:hover {
+  .button:hover,
+  .button:hover * {
     background-color: #e0e0e0;
     color: #424242;
   }
 
-  .button.right:hover {
+  .button.right:hover,
+  .button.right:hover * {
     background-color: #7cb342;
     color: #eeeeee;
   }
 
-  .button.wrong:hover {
+  .button.wrong:hover,
+  .button.wrong:hover * {
     background-color: #d32f2f;
     color: #eeeeee;
   }
@@ -134,7 +146,8 @@ table.config td {
   max-width: 30%;
 }
 
-table.config td button, table.config td progress {
+table.config td button,
+table.config td progress {
   width: 100%;
 }
 
@@ -142,7 +155,7 @@ table.config td input {
   width: 30em;
 }
 
-table.config td input[type=checkbox] {
+table.config td input[type="checkbox"] {
   width: inherit !important;
 }
 
