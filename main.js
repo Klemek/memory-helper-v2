@@ -224,11 +224,23 @@ let app = {
       this.available = [];
       this.error = "";
       if (newValue) {
-        Papa.parse(newValue, {
-          download: true,
-          complete: this.dataComplete,
-          error: this.dataError,
-        });
+        fetch(newValue, {
+          headers: {
+            Origin: window.location.host,
+          },
+        })
+          .then((response) => {
+            response
+              .text()
+              .then((content) => {
+                Papa.parse(content, {
+                  complete: this.dataComplete,
+                  error: this.dataError,
+                });
+              })
+              .catch(this.dataError);
+          })
+          .catch(this.dataError);
       }
     },
     multiple() {
